@@ -9,8 +9,12 @@
   },
   "dependencies": {
     "core-js": "^3.6.4",
+    "element-ui": "^2.13.2",
+    "jquery": "^3.5.1",
     "register-service-worker": "^1.7.1",
+    "vg-editor": "^2.7.2",
     "vue": "^2.6.11",
+    "vue-codemirror": "^4.0.6",
     "vue-router": "^3.1.6",
     "vuex": "^3.1.3"
   },
