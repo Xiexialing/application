@@ -1,7 +1,12 @@
 <template>
-    <div>
-        <el-form size="small" :inline="true" class="cfg-el-form" label-width="70px" @keydown.native.enter.prevent="">
-            <p class="heading">添加变量</p>
+    <div id="env">
+        <p class="heading">添加变量</p>
+        <el-form size="small" :inline="true" class="inline-form" @keydown.native.enter.prevent>
+            <el-form-item>
+                <el-select v-model="form.type">
+                    <el-option label="自定义" value=""/>
+                </el-select>
+            </el-form-item>
             <el-form-item>
                 <el-input v-model="form.key"
                           placeholder="Key"/>
@@ -11,7 +16,7 @@
                           placeholder="Value"/>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary">添加</el-button>
+                <el-button type="primary" @click="onAdd">添加</el-button>
             </el-form-item>
         </el-form>
         <p class="heading">管理变量</p>
@@ -43,30 +48,78 @@
         data() {
             return {
                 form: {
-                    port: '',
-                    protocol: 'TCP'
+                    type: '',
+                    key: '',
+                    value: ''
                 },
                 columns: [
                     {
-                        label: '名称',
-                        prop: 'name'
+                        label: '类型',
+                        prop: 'type',
+                        render: (createElement) => {
+                            return createElement('span', '自定义')
+                        }
                     },
                     {
-                        label: '端口',
-                        prop: 'port'
+                        label: 'key',
+                        prop: 'key'
                     },
                     {
-                        label: '协议',
-                        prop: 'protocol'
+                        label: 'value',
+                        prop: 'value'
                     },
                     {
                         label: '操作',
-                        render: () => {
-
+                        render: (createElement, row) => {
+                            return createElement('el-button', {
+                                props: {
+                                    type: 'text',
+                                    icon: "icon icon-close el-icon-close"
+                                },
+                                on: {
+                                    click: () => {
+                                        this.list.splice(row.index, 1)
+                                    }
+                                }
+                            })
                         }
                     }
                 ],
                 list: []
+            }
+        },
+        methods: {
+            onAdd() {
+                let {type, key, value} = this.form
+                let whiteList = {
+                    applicationName: true,
+                    applicationType: true,
+                    envId: true,
+                    parentKind: true,
+                    versionName: true,
+                    imageGroupStrategy: true,
+                    shrinkageImageGroupId: true,
+                    targetReplica: true,
+                    oldReplica: true,
+                    'kubernetes.customized/pod-affinity': true,
+                    'kubernetes.customized/bocloud_component_id': true,
+                    nfs: true
+                }
+                if (whiteList[key]) {
+                    return this.$popError('该key为系统默认key,请修改')
+                }
+                if (this.list.some(item => item.key === key)) {
+                    this.$popError('key已存在')
+                } else {
+                    this.list.push({
+                        type,
+                        key,
+                        value
+                    })
+                }
+            },
+            getList() {
+                return this.list
             }
         },
         components: {
@@ -75,6 +128,10 @@
     }
 </script>
 
-<style scoped>
-
+<style scoped lang="less">
+    #env {
+        .inline-form {
+            display: flex;
+        }
+    }
 </style>

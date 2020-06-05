@@ -9,10 +9,16 @@
                 </el-radio-group>
             </el-form-item>
             <el-form-item label="内容">
-                <el-input v-model="form.text"/>
+                <div v-for="(item, index) in form.commands"
+                     :key="index"
+                     class="command-item">
+                    <el-input :placeholder="item.text" v-model="item.value"/>
+                    <el-button type="text" @click="onAddCommand"><i class="icon icon-add el-icon-plus"></i></el-button>
+                    <el-button type="text" @click="onCloseCommand"><i class="icon icon-close el-icon-close"></i></el-button>
+                </div>
             </el-form-item>
             <el-form-item label="">
-                <el-button type="primary">添加</el-button>
+                <el-button type="primary" @click="onAdd">添加</el-button>
             </el-form-item>
         </el-form>
         <p class="heading">管理</p>
@@ -43,28 +49,70 @@
         name: "PersonalConfigChildTagsForm",
         data() {
             return {
-                hostLabelList: [],
                 form: {
-                    port: '',
-                    protocol: 'TCP'
+                    type: 'com',
+                    commands: [
+                        {value: '', text: '请输入命令或参数'}
+                    ]
                 },
                 columns: [
                     {
                         label: '类型',
-                        prop: 'name'
+                        prop: 'type'
                     },
                     {
                         label: '内容',
-                        prop: 'port'
+                        render: (createElement, row) => {
+                            let {texts} = row
+                            return createElement('div', texts.map((text, index) => createElement('el-tag', {
+                                props: {
+                                    closable: texts.length !== 1,
+                                    size: 'small'
+                                },
+                                style:{
+                                  margin: '5px'
+                                },
+                                on: {
+                                    close:()=>{
+                                        texts.splice(index, 1)
+                                    }
+                                }
+                            }, text)))
+                        }
                     },
                     {
                         label: '操作',
-                        render: () => {
-
+                        render: (createElement, row) => {
+                            return createElement('el-button', {
+                                props: {
+                                    type: 'text',
+                                    icon: "icon icon-close el-icon-close"
+                                },
+                                on: {
+                                    click: () => {
+                                        this.list.splice(row.index, 1)
+                                    }
+                                }
+                            })
                         }
                     }
                 ],
                 list: []
+            }
+        },
+        methods: {
+            onAdd() {
+                let {type, text} = this.form
+                let {list} = this
+                let item = list.find(item => item.type === type)
+                if (!item) {
+                    list.push({
+                        type,
+                        texts: [text]
+                    })
+                } else {
+                    item.texts.push(text)
+                }
             }
         },
         components: {

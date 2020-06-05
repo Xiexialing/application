@@ -1,61 +1,69 @@
 <template>
-    <div>
-        <el-form size="small" label-width="100px" @keydown.native.enter.prevent>
-            <el-form-item label="配置类型">
-                <el-select v-model="form.type" :transfer="true">
-                    <el-option value="group" label="配置组"/>
-                    <el-option value="file" label="配置文件"/>
-                </el-select>
+    <el-form size="small"
+             label-width="100px"
+             :model="form"
+             id="statefulSetForm"
+             @keydown.native.enter.prevent>
+        <el-form-item label="类型">
+            <el-select v-model="form.type" class="select"  @change="onStorageTypeChange">
+                <el-option value="storageClass" label="storageClass"/>
+                <el-option value="emptyDir" label="临时卷"/>
+            </el-select>
+        </el-form-item>
+        <template v-if="form.type === 'storageClass'">
+            <el-form-item label="存储名称">
+                <el-input v-model="form.name" class="input"/>
             </el-form-item>
-            <el-form-item label="配置组名" v-if="form.type === 'group'">
-                <el-select v-model="form.current" :transfer="true">
-                    <el-option v-for="(item , index) in groupList"
+            <el-form-item label="storageClass">
+                <el-select v-model="form.storageClass" :transfer="true" class="select">
+                    <el-option v-for="(item,index) in storageClassList"
                                :key="index"
                                :value="item.metadata.name"
                                :label="item.metadata.name"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="配置文件名称" v-else>
-                <el-cascader :options="fileList" v-model="form.file" expand-trigger="hover" clearable/>
+            <el-form-item label="访问模式">
+                <el-radio-group v-model="form.accessModes">
+                    <el-radio label="ReadWriteOnce">Single User (RWO)</el-radio>
+                    <el-radio label="ReadWriteMany">Shared Access (RWX)</el-radio>
+                    <el-radio label="ReadOnlyMany">Read Only (ROX)</el-radio>
+                </el-radio-group>
             </el-form-item>
-            <el-form-item label="容器内路径">
-                <el-input v-model="form.userPath"
-                          v-if="form.type === 'group'"
-                          :placeholder="'配置文件挂载路径' + '： /config/'"/>
-                <el-input v-model="form.userPath"
-                          v-else
-                          :placeholder="'配置文件挂载路径' + '： /config/config.properties'"/>
+            <el-form-item label="容量">
+                <el-input v-model="form.storage" placeholder="请输入正整数">
+                    <el-select v-model="form.unit" style="width: 90px;" slot="append">
+                        <el-option value="Mi" label="MiB"/>
+                        <el-option value="Gi" label="GiB"/>
+                        <el-option value="Ti" label="TiB"/>
+                        <el-option value="M" label="MB"/>
+                        <el-option value="G" label="GB"/>
+                        <el-option value="T" label="TB"/>
+                    </el-select>
+                </el-input>
             </el-form-item>
-            <el-form-item label="">
-                <el-button type="primary" @click="onAdd">添加</el-button>
+        </template>
+        <template v-else>
+            <el-form-item label="卷名">
+                <el-input v-model="form.name" class="input"/>
+                <i class="form-tip">临时卷第一次添加，卷名必填</i>
             </el-form-item>
-        </el-form>
-        <p class="heading">配置文件挂载路径</p>
-        <el-table border
-                  :data="list"
-                  size="small">
-            <template v-for="(column, index) in columns">
-                <el-table-column v-if="!column.render"
-                                 :label="column.label"
-                                 :prop="column.prop"
-                                 :key="index"/>
-                <el-table-column v-else
-                                 :label="column.label"
-                                 :key="index">
-                    <template slot-scope="scope">
-                        <CustomRenderComp :render="column.render" :row="scope.row"/>
-                    </template>
-                </el-table-column>
-            </template>
-        </el-table>
-    </div>
+            <el-form-item label="挂载卷名">
+                <el-input v-model="form.mountName" class="input"/>
+                <i class="form-tip">如填写卷名，挂载卷名必须与卷名一致，如没填写卷名，挂载卷名必须是已添加的卷名</i>
+            </el-form-item>
+        </template>
+        <el-form-item label="容器内路径">
+            <el-input v-model="form.path" class="input"/>
+        </el-form-item>
+        <el-form-item label="子路径">
+            <el-input v-model="form.subPath" class="input"/>
+        </el-form-item>
+    </el-form>
 </template>
 
 <script>
-    import CustomRenderComp from '@/components/CustomRenderComp'
-
     export default {
-        name: "PersonalConfigChildTagsForm",
+        name: "StorageVolumeChildStatefulSetForm",
         props: {
             clusterList: {
                 type: Array,
@@ -193,7 +201,6 @@
                 type: Object,
                 default() {
                     return {
-                        projectName: '',
                         clusterId: ''
                     }
                 }
@@ -201,109 +208,77 @@
         },
         data() {
             return {
-                groupList: [],
-                fileList: [],
                 form: {
-                    type: 'group',
-                    current: '',
-                    file: [],
-                    userPath: ''
+                    type: 'storageClass',
+                    name: '',
+                    storageClass: '',
+                    accessModes: 'ReadWriteOnce',
+                    storage: '',
+                    unit: 'Mi',
+                    mountName: '',
+                    path: '',
+                    subPath: ''
                 },
-                columns: [
-                    {
-                        label: 'Name',
-                        prop: 'name'
-                    },
-                    {
-                        label: 'Path',
-                        prop: 'port'
-                    },
-                    {
-                        label: '文件名',
-                        prop: 'protocol'
-                    },
-                    {
-                        label: '操作',
-                        render: () => {
-
-                        }
-                    }
-                ],
-                list: []
+                storageClassList: []
             }
         },
         methods: {
-            onAdd() {
-                let {type, current, file, userPath} = this.form
-                let {groupList} = this
-                let group = groupList.find(item=>item.meta.name === current)
-                let item = {
-                    ...group,
-                    type,
-                    userPath
-                }
-                if(type === 'file' ) {
-                    item.file = file
-                }
-                this.list.push(item)
-                this.form.current = ''
-                this.form.userPath = ''
-                this.form.file = []
+            onStorageTypeChange(type) {
+                this.$emit('storageTypeChangeEvent', type)
             },
-            queryAllConfigMaps() {
-                let {clusterId, projectName} = this.baseForm
-                let {clusterList} = this
-                let cluster = clusterList.find(item => item.clusterId === clusterId)
-                if (projectName && clusterId) {
-                    let {serviceIp, clusterType, clusterPort} = cluster
+            getStorageClass() {
+                let {clusterId} = this.baseForm
+                let cluster = this.clusterList.find(item => item.clusterId === clusterId)
+                if (cluster) {
+                    let {serviceIp, clusterType, clusterPort, token, platformType} = cluster
                     let params = {
-                        projectName,
-                        resourceType: 'queryAllConfigMaps',
-                        currPageNum: 1,
-                        pageSize: 9999999,
-                        masterIp: serviceIp,
-                        masterType: clusterType,
-                        masterPort: clusterPort
-                    };
-                    this.$http.queryAllConfigMaps(params).then((res) => {
-                        let {rows} = res.data
-                        if (rows) {
-                            this.groupList = rows || []
-                            this.fileList = []
-                            if (rows.length) {
-                                this.form.current = rows[0].metadata.name
-                                this.fileList = this.groupList.map((item) => {
-                                    let {data} = item
-                                    let {name} = item.metadata
-                                    let obj = {
-                                        value: name,
-                                        label: name,
-                                        children: []
-                                    }
-                                    if (data) {
-                                        for (let key in data) {
-                                            obj.children.push({
-                                                value: key,
-                                                label: key,
-                                                data: data[key]
-                                            })
-                                        }
-                                    }
-                                    return obj
-                                })
-                            }
+                        target: {
+                            masterIp: serviceIp,
+                            masterType: clusterType,
+                            masterPort: clusterPort,
+                            kind: "StorageClass",
+                            token,
+                            platformType: platformType + '-volume'
+                        }
+                    }
+                    this.$http.querySc(params).then((res) => {
+                        let {state, data} = res.data
+                        if (state === 'success') {
+                            this.storageClassList = JSON.parse(data).items
                         }
                     })
                 }
-
             },
-        },
-        components: {
-            CustomRenderComp
+            getParams() {
+                let {
+                    type, name, storageClass, accessModes,
+                    storage, unit, mountName, path, subPath
+                } = this.form
+                let params = {
+                    type,
+                    name,
+                    path,
+                    subPath
+                }
+                if(type === 'emptyDir') {
+                    params.mountName = mountName
+                }else {
+                    params.storageClass = storageClass
+                    params.accessModes = accessModes
+                    params.storage = storage
+                    params.unit = unit
+                }
+                return params
+            }
         }
     }
 </script>
 
-<style scoped>
-
+<style lang="less">
+    #statefulSetForm {
+        .input, .select {
+            margin-right: 15px;
+            width: 234px !important;
+        }
+    }
 </style>

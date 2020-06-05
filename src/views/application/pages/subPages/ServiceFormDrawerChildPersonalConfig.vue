@@ -12,13 +12,13 @@
                     <PersonalConfigChildEnv/>
                 </el-tab-pane>
                 <el-tab-pane label="存储卷">
-                    <PersonalConfigChildStorageVolume/>
+                    <PersonalConfigChildStorageVolume :form="form"/>
                 </el-tab-pane>
-                <el-tab-pane label="卷服务配置">
-                    <PersonalConfigChildService/>
+                <el-tab-pane label="服务配置">
+                    <PersonalConfigChildService :baseForm="form"/>
                 </el-tab-pane>
                 <el-tab-pane label="调度管理">
-                    <PersonalConfigChildSchedule/>
+                    <PersonalConfigChildSchedule :baseForm="form"/>
                 </el-tab-pane>
                 <el-tab-pane label="命令管理">
                     <PersonalConfigChildCommand/>
@@ -42,6 +42,16 @@
 
     export default {
         name: "ServiceFormDrawerChildPersonalConfig",
+        props:{
+            form:{
+                type: Object,
+                default() {
+                    return {
+                        kind: 'Deployment'
+                    }
+                }
+            }
+        },
         data() {
             return {}
         },

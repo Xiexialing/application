@@ -19,12 +19,13 @@
         name: "addStepOne",
         data() {
             return {
-                active: 0
+                active: 0,
+                form: null  // 收集表单数据
             }
         },
         methods: {
             onNext(form) {
-                console.log(form)
+                this.form = form
                 this.active++
             }
         },

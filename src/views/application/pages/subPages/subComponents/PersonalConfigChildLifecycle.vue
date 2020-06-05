@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="lifecycle">
         <el-form size="small" class="cfg-el-form" label-width="100px" @keydown.native.enter.prevent="">
             <p class="heading">添加</p>
             <el-form-item label="类型">
@@ -9,16 +9,16 @@
                 </el-radio-group>
             </el-form-item>
             <el-form-item label="内容">
-                <div v-for="(item,index) in []"
+                <div v-for="(item,index) in form.commands"
+                     class="command-item"
                      :key="index">
-                    <el-input :placeholder="item.text"
-                              v-model="item.value"/>
-                    <span class="b-added"></span>
-                    <span class="b-shutdown"></span>
+                    <el-input :placeholder="item.text" v-model="item.value"/>
+                    <el-button type="text" @click="onAddCommand"><i class="icon icon-add el-icon-plus"></i></el-button>
+                    <el-button type="text" @click="onCloseCommand(index)"><i class="icon icon-close el-icon-close"></i></el-button>
                 </div>
             </el-form-item>
             <el-form-item label="">
-                <el-button type="primary">添加</el-button>
+                <el-button type="primary" @click="onAdd">添加</el-button>
             </el-form-item>
         </el-form>
         <p class="heading">管理</p>
@@ -51,8 +51,10 @@
             return {
                 hostLabelList: [],
                 form: {
-                    port: '',
-                    protocol: 'TCP'
+                    type: 'poststart',
+                    commands: [
+                        {value: '', text: '请输入命令或参数'}
+                    ]
                 },
                 columns: [
                     {
@@ -65,12 +67,33 @@
                     },
                     {
                         label: '操作',
-                        render: () => {
-
+                        render: (createElement, row) => {
+                            return createElement('el-button', {
+                                props: {
+                                    type: 'text',
+                                    icon: "icon icon-close el-icon-close"
+                                },
+                                on: {
+                                    click: () => {
+                                        this.list.splice(row.index, 1)
+                                    }
+                                }
+                            })
                         }
                     }
                 ],
                 list: []
+            }
+        },
+        methods: {
+            onAddCommand() {
+                this.form.commands.push( {value: '', text: '请输入参数或命令'})
+            },
+            onCloseCommand(index) {
+                this.form.commands.splice(index, 1)
+            },
+            onAdd() {
+
             }
         },
         components: {
@@ -79,6 +102,18 @@
     }
 </script>
 
-<style scoped>
+<style scoped lang="less">
+    #lifecycle {
+        .command-item {
+            display: flex;
+        }
 
+        .icon {
+            font-size: 18px;
+
+            &.icon-add {
+                margin-left: 5px;
+            }
+        }
+    }
 </style>

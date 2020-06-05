@@ -117,6 +117,15 @@
              */
             onToggle() {
                 this.customMode = !this.customMode
+            },
+            getParams() {
+                let {customMode} = this
+                let {maxCpu, maxCpu2, maxCpuUnit, maxMem, maxMem2, maxMemUnit, maxGPU} = this.form
+                return  {
+                    maxCpu: customMode ? maxCpu2 + maxCpuUnit : maxCpu,
+                    maxMem: customMode ? maxMem2 + maxMemUnit : maxMem,
+                    maxGPU
+                }
             }
         }
     }
@@ -131,7 +140,8 @@
                 flex: 1;
                 margin-right: 30px;
             }
-            .select-wrapper{
+
+            .select-wrapper {
                 width: 100px;
             }
         }

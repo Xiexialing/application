@@ -1,7 +1,7 @@
 <template>
-    <el-form ref="form" label-width="100px" :model="form" :rules="rules" class="resource-form" size="small">
+    <el-form ref="form" label-width="100px" :model="form" :rules="rules" size="small">
         <el-row>
-            <el-col :span="11">
+            <el-col :span="12">
                 <el-form-item label="集群">
                     <el-select v-model="form.clusterId" @change="onClusterChange">
                         <el-option v-for="(item, index) in clusterList"
@@ -11,9 +11,9 @@
                     </el-select>
                 </el-form-item>
             </el-col>
-            <el-col :span="9">
-                <el-form-item label="分区" label-width="56px" @change="onPartitionChange">
-                    <el-select v-model="form.partitionId">
+            <el-col :span="12">
+                <el-form-item label="分区" label-width="56px">
+                    <el-select v-model="form.partitionId" @change="onPartitionChange">
                         <el-option v-for="(item, index) in partitionList"
                                    :key="index"
                                    :value="item.partitionId"
@@ -21,44 +21,40 @@
                     </el-select>
                 </el-form-item>
             </el-col>
-            <el-col :span="4">
-                <i class="bocloudpublic bopublic-dropdown"></i>
-                <i class="b-shutdown"></i>
+            <el-col :span="12">
+                <el-form-item label="网络">
+                    <el-select v-model="form.networkName">
+                        <el-option v-for="(item, index) in networktList"
+                                   :key="index"
+                                   :value="item.netWorkName"
+                                   :label="item.netWorkName"/>
+                    </el-select>
+                </el-form-item>
             </el-col>
         </el-row>
-        <template v-show="isCollapse">
-            <el-form-item label="网络">
-                <el-select v-model="form.networkName">
-                    <el-option v-for="(item, index) in networktList"
-                               :key="index"
-                               :value="item.netWorkName"
-                               :label="item.netWorkName"/>
-                </el-select>
-            </el-form-item>
-            <el-form-item label-width="24px">
-                <span class="subtitle">资源限额</span>
-            </el-form-item>
-            <el-form-item label="CPU(核)">
-                <el-input v-model="form.cpu" @input="onNumberChange($event, 'cpu')">
-                    <template slot="append">当前可用额度：{{resources.cpu}}</template>
-                </el-input>
-            </el-form-item>
-            <el-form-item label="内存(GB)">
-                <el-input v-model="form.memory" @input="onNumberChange($event, 'memory')">
-                    <template slot="append">当前可用额度：{{resources.memory}}</template>
-                </el-input>
-            </el-form-item>
-            <el-form-item label="实例">
-                <el-input v-model="form.pods" @input="onNumberChange($event, 'pods')">
-                    <template slot="append">当前可用额度：{{resources.pods}}</template>
-                </el-input>
-            </el-form-item>
-            <el-form-item label="存储(GB)">
-                <el-input v-model="form.requestStorage" @change="onNumberChange($event, 'requestStorage')">
-                    <template slot="append">当前可用额度：{{resources.requestStorage}}</template>
-                </el-input>
-            </el-form-item>
-        </template>
+        <el-form-item label-width="24px">
+            <span class="subtitle">资源限额</span>
+        </el-form-item>
+        <el-form-item label="CPU(核)">
+            <el-input v-model="form.cpu" @blur="onNumberChange($event, 'cpu')">
+                <template slot="append">当前可用额度：{{resources.cpu}}</template>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="内存(GB)">
+            <el-input v-model="form.memory" @blur="onNumberChange($event, 'memory')">
+                <template slot="append">当前可用额度：{{resources.memory}}</template>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="实例">
+            <el-input v-model="form.pods" @blur="onNumberChange($event, 'pods')">
+                <template slot="append">当前可用额度：{{resources.pods}}</template>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="存储(GB)">
+            <el-input v-model="form.requestStorage" @blur="onNumberChange($event, 'requestStorage')">
+                <template slot="append">当前可用额度：{{resources.requestStorage}}</template>
+            </el-input>
+        </el-form-item>
     </el-form>
 </template>
 
@@ -88,10 +84,10 @@
                             "clusterCreatetime": "2020-05-20T07:59:26.000+0000",
                             "userId": 1,
                             "clusterResType": 0,
-                            "clusterTotalCpu": 0,
-                            "clusterTotalMem": 0,
-                            "clusterFreeCpu": 0,
-                            "clusterFreeMem": 0,
+                            "clusterTotalCpu": 11,
+                            "clusterTotalMem": 22,
+                            "clusterFreeCpu": 33,
+                            "clusterFreeMem": 44,
                             "serviceIp": "192.168.1.231",
                             "haEnable": null,
                             "envId": null,
@@ -150,10 +146,10 @@
                             "clusterCreatetime": "2020-05-21T01:43:47.000+0000",
                             "userId": 1,
                             "clusterResType": 0,
-                            "clusterTotalCpu": 0,
-                            "clusterTotalMem": 0,
-                            "clusterFreeCpu": 0,
-                            "clusterFreeMem": 0,
+                            "clusterTotalCpu": 12,
+                            "clusterTotalMem": 23,
+                            "clusterFreeCpu": 34,
+                            "clusterFreeMem": 45,
                             "serviceIp": "192.168.1.72",
                             "haEnable": null,
                             "envId": null,
@@ -206,24 +202,38 @@
             },
             envId: {
                 type: Number
+            },
+            form: {
+                type: Object,
+                default() {
+                    return {
+                        clusterId: '',
+                        partitionId: '',
+                        networkName: '',
+                        cpu: 1,
+                        memory: 1,
+                        pods: 1,
+                        requestStorage: 0
+                    }
+                }
             }
         },
         data() {
             return {
                 partitionList: [], // 分区列表
-                networktList: [],  // 网络列表
-                form: {
-                    clusterId: '',
-                    partitionId: '',
-                    netWorkName: '',
-                    cpu: 1,
-                    memory: 1,
-                    pods: 1,
-                    requestStorage: 0
-                },
-                resources: Object.assign({}, resources),
-                rules: {},
-                isCollapse: true
+                resources: Object.assign({}, resources),  // 可用资源配额
+                rules: {}
+            }
+        },
+        computed: {
+            networktList() {
+                let {partitionId} = this.form
+                let {partitionList} = this
+                let partition = partitionList.find(partition => partition.partitionId === partitionId)
+                if (partition) {
+                    return partition.networktList || []
+                }
+                return []
             }
         },
         methods: {
@@ -231,30 +241,79 @@
              * 监听集群变化
              * @param clusterId
              */
-            onClusterChange(clusterId) {
+            onClusterChange() {
                 this.form.partitionId = ''
                 this.form.networkName = ''
                 this.partitionList = []
-                this.networktList = []
                 this.form.cpu = 1
                 this.form.memory = 1
                 this.form.pods = 1
                 this.form.requestStorage = 0
                 this.resources = Object.assign({}, resources)
-                //获取集群下的分区
-                this.$http.getPartitionTags({
-                    envId: this.envId,
-                    clusterId
-                }).then((res) => {
-                    let {state, data} = res.data
-                    if (state === 'success') {
-                        this.partitionList = data
-                    }
-                })
+                this.getPartitionList()
             },
+            /**
+             * 查询分区列表
+             */
+            getPartitionList() {
+                let {clusterId} = this.form
+                let {envId} = this
+                this.partitionList = [
+                    {
+                        "partitionId": 196,
+                        "partitionName": "calico_share",
+                        "partitionDescribe": "",
+                        "partitionClusterId": null,
+                        "partitionShare": 1,
+                        "partitionRealName": "calico_share-3bc5",
+                        "hostTags": [],
+                        "usedCpu": null,
+                        "usedMem": null,
+                        "partitionKind": 0,
+                        "resourceCPU": 12,
+                        "resourceMemory": 12,
+                        "resourceGpu": null,
+                        "resourceInstance": 10,
+                        "defaultCpu": null,
+                        "defaultMem": null,
+                        "resourceHd": 100,
+                        "networktList": []
+                    },
+                    {
+                        "partitionId": 191,
+                        "partitionName": "calico72-default",
+                        "partitionDescribe": "default",
+                        "partitionClusterId": null,
+                        "partitionShare": 1,
+                        "partitionRealName": "calico72-default",
+                        "hostTags": [],
+                        "usedCpu": null,
+                        "usedMem": null,
+                        "partitionKind": 1,
+                        "resourceCPU": 12,
+                        "resourceMemory": 12,
+                        "resourceGpu": null,
+                        "resourceInstance": 12,
+                        "defaultCpu": null,
+                        "defaultMem": null,
+                        "resourceHd": 12,
+                        "networktList": [
+                            {
+                                "netWorkName": "default",
+                                "partitionId": 191,
+                                "id": 86,
+                                "ips": null
+                            }]
+                    }
+                ]
+                console.log(clusterId, envId)
+            },
+            /**
+             * 监听分区变化
+             * @param partitionId
+             */
             onPartitionChange(partitionId) {
                 this.form.networkName = ''
-                this.networktList = []
                 this.form.cpu = 1
                 this.form.memory = 1
                 this.form.pods = 1
@@ -269,9 +328,13 @@
                     requestStorage: resourceHd
                 }
             },
-            onNumberChange(value, key) {
-                value = parseInt(value)
-                value = value ? value : key === 'requestStorage' ? 0 : 1
+            /**
+             * 监听资源输入框变化
+             * @param event
+             * @param key
+             */
+            onNumberChange(event, key) {
+                let value = parseInt(event.target.value) || 0
                 value = value <= this.resources[key] ? value : this.resources[key]
                 this.form[key] = value
             }
@@ -279,7 +342,7 @@
     }
 </script>
 <style lang="less">
-    .resource-form{
+    .resource-form {
         margin: 0 0 20px 24px;
         padding: 20px 20px 10px 0;
         background-color: #ebeef5;

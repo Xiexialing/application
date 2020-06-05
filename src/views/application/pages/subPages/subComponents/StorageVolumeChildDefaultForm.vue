@@ -1,61 +1,59 @@
 <template>
-    <div>
-        <el-form size="small" label-width="100px" @keydown.native.enter.prevent>
-            <el-form-item label="配置类型">
-                <el-select v-model="form.type" :transfer="true">
-                    <el-option value="group" label="配置组"/>
-                    <el-option value="file" label="配置文件"/>
+    <el-form size="small" id='defaultForm' label-width="100px" :model="form" @keydown.native.enter.prevent>
+        <el-form-item label="存储类型">
+            <el-select v-model="form.type" class="select" @change="onStorageTypeChange">
+                <el-option value="share" label="共享卷"/>
+                <el-option value="local" label="临时卷"/>
+                <el-option value="logs" label="日志"/>
+                <el-option value="NAS" label="NAS"/>
+            </el-select>
+        </el-form-item>
+        <template v-if="form.type === 'NAS'">
+            <el-form-item label="卷名">
+                <el-select v-model="form.name" class="select">
+                    <el-option v-for="(item,index) in nameList"
+                               :key="index"
+                               :label="item.name"
+                               :value="item.name"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="配置组名" v-if="form.type === 'group'">
-                <el-select v-model="form.current" :transfer="true">
-                    <el-option v-for="(item , index) in groupList"
+        </template>
+        <template v-else>
+            <el-form-item label="卷名">
+                <el-input v-model="form.name" class="input"/>
+                <i class="form-tip">存储卷，同一类型第一次添加，卷名必填</i>
+            </el-form-item>
+        </template>
+        <template v-if="form.type === 'share'">
+            <el-form-item label="存储名称">
+                <el-select v-model="form.configVolumesMountPath" :transfer="true">
+                    <el-option v-for="(item,index) in storageList"
                                :key="index"
                                :value="item.metadata.name"
-                               :label="item.metadata.name"/>
+                               :label="item.metadata.name + ' - ' + item.spec.resources.requests.storage + ' - ' + item.spec.accessModes[0] + ' - ' + item.status.phase"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="配置文件名称" v-else>
-                <el-cascader :options="fileList" v-model="form.file" expand-trigger="hover" clearable/>
+        </template>
+        <el-form-item label="容器内路径">
+            <el-input v-model="form.path" class="input"/>
+        </el-form-item>
+        <template v-if="form.type !== 'NAS'">
+            <el-form-item label="子路径">
+                <el-input v-model="form.subPath" class="input"/>
             </el-form-item>
-            <el-form-item label="容器内路径">
-                <el-input v-model="form.userPath"
-                          v-if="form.type === 'group'"
-                          :placeholder="'配置文件挂载路径' + '： /config/'"/>
-                <el-input v-model="form.userPath"
-                          v-else
-                          :placeholder="'配置文件挂载路径' + '： /config/config.properties'"/>
+        </template>
+        <template v-if="form.type !== 'NAS'">
+            <el-form-item label="挂载卷名">
+                <el-input v-model="form.mountName" class="input"/>
+                <i class="form-tip">如填写卷名，挂载卷名必须与卷名一致，如没填写卷名，挂载卷名必须是已添加的卷名</i>
             </el-form-item>
-            <el-form-item label="">
-                <el-button type="primary" @click="onAdd">添加</el-button>
-            </el-form-item>
-        </el-form>
-        <p class="heading">配置文件挂载路径</p>
-        <el-table border
-                  :data="list"
-                  size="small">
-            <template v-for="(column, index) in columns">
-                <el-table-column v-if="!column.render"
-                                 :label="column.label"
-                                 :prop="column.prop"
-                                 :key="index"/>
-                <el-table-column v-else
-                                 :label="column.label"
-                                 :key="index">
-                    <template slot-scope="scope">
-                        <CustomRenderComp :render="column.render" :row="scope.row"/>
-                    </template>
-                </el-table-column>
-            </template>
-        </el-table>
-    </div>
+        </template>
+    </el-form>
 </template>
 
 <script>
-    import CustomRenderComp from '@/components/CustomRenderComp'
-
     export default {
-        name: "PersonalConfigChildTagsForm",
+        name: "StorageVolumeChildStatefulSetForm",
         props: {
             clusterList: {
                 type: Array,
@@ -193,117 +191,95 @@
                 type: Object,
                 default() {
                     return {
-                        projectName: '',
-                        clusterId: ''
+                        clusterId: '',
+                        projectName: ''
                     }
                 }
             }
         },
         data() {
             return {
-                groupList: [],
-                fileList: [],
+                nameList: [],  // 卷名数组
+                storageList: [],  // 存储名称数组
                 form: {
-                    type: 'group',
-                    current: '',
-                    file: [],
-                    userPath: ''
-                },
-                columns: [
-                    {
-                        label: 'Name',
-                        prop: 'name'
-                    },
-                    {
-                        label: 'Path',
-                        prop: 'port'
-                    },
-                    {
-                        label: '文件名',
-                        prop: 'protocol'
-                    },
-                    {
-                        label: '操作',
-                        render: () => {
-
-                        }
-                    }
-                ],
-                list: []
+                    type: 'share',
+                    name: '',
+                    configVolumesMountPath: '',
+                    path: '',
+                    subPath: '',
+                    mountName: ''
+                }
             }
         },
         methods: {
-            onAdd() {
-                let {type, current, file, userPath} = this.form
-                let {groupList} = this
-                let group = groupList.find(item=>item.meta.name === current)
-                let item = {
-                    ...group,
-                    type,
-                    userPath
-                }
-                if(type === 'file' ) {
-                    item.file = file
-                }
-                this.list.push(item)
-                this.form.current = ''
-                this.form.userPath = ''
-                this.form.file = []
+            onStorageTypeChange(type) {
+                this.$emit('storageTypeChangeEvent', type)
             },
-            queryAllConfigMaps() {
-                let {clusterId, projectName} = this.baseForm
-                let {clusterList} = this
-                let cluster = clusterList.find(item => item.clusterId === clusterId)
-                if (projectName && clusterId) {
-                    let {serviceIp, clusterType, clusterPort} = cluster
+            getNameList() {
+                let {envId} = this.this.$store.state.currentTenant
+                let parmas = {
+                    clusterId: 0,  // 与集群无关，但是
+                    envId
+                }
+                this.$http.getSaveList(parmas).then((res) => {
+                    let {success, data} = res.data
+                    if (success) {
+                        this.nameList = data
+                    }
+                })
+            },
+            getStorageList() {
+                let {projectName, clusterId} = this.baseForm
+                let cluster = this.clusterList.find(item => item.clusterId === clusterId)
+                if (projectName && cluster) {
+                    this.form.configVolumesMountPath = ''
+                    let {serviceIp, clusterType, clusterPort, token, platformType} = cluster
                     let params = {
-                        projectName,
-                        resourceType: 'queryAllConfigMaps',
-                        currPageNum: 1,
-                        pageSize: 9999999,
-                        masterIp: serviceIp,
-                        masterType: clusterType,
-                        masterPort: clusterPort
-                    };
-                    this.$http.queryAllConfigMaps(params).then((res) => {
-                        let {rows} = res.data
-                        if (rows) {
-                            this.groupList = rows || []
-                            this.fileList = []
-                            if (rows.length) {
-                                this.form.current = rows[0].metadata.name
-                                this.fileList = this.groupList.map((item) => {
-                                    let {data} = item
-                                    let {name} = item.metadata
-                                    let obj = {
-                                        value: name,
-                                        label: name,
-                                        children: []
-                                    }
-                                    if (data) {
-                                        for (let key in data) {
-                                            obj.children.push({
-                                                value: key,
-                                                label: key,
-                                                data: data[key]
-                                            })
-                                        }
-                                    }
-                                    return obj
-                                })
+                        target: {
+                            projectName,
+                            masterIp: serviceIp,
+                            masterType: clusterType,
+                            masterPort: clusterPort,
+                            token,
+                            platformType,
+                            kind: "PersistentVolumeClaim"
+                        }
+                    }
+                    this.$http.getVolume(params).then((res) => {
+                        let {state, data} = res.data
+                        if (state === 'success') {
+                            let storageList = this.storageList = JSON.parse(data).items
+                            if (storageList.length) {
+                                this.form.configVolumesMountPath = storageList[0].metadata.name
                             }
                         }
                     })
                 }
-
             },
-        },
-        components: {
-            CustomRenderComp
+            getParams() {
+                let {type, name, configVolumesMountPath, path, subPath, mountName} = this.form
+                let params = {
+                    type,
+                    name,
+                    path
+                }
+                if(type === 'share') {
+                    params.configVolumesMountPath = configVolumesMountPath
+                }
+                if(['share', 'local', 'logs'].indexOf(type) !== -1) {
+                    params.subPath = subPath
+                    params.mountName = mountName
+                }
+                return params
+            }
         }
     }
 </script>
-
-<style scoped>
-
+<style lang="less">
+    #defaultForm {
+        .input, .select {
+            margin-right: 15px;
+            width: 234px !important;
+        }
+    }
 </style>

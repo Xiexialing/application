@@ -14,7 +14,7 @@
             </el-select>
         </el-form-item>
         <el-form-item label="选择目录">
-            <el-select v-model="form.name">
+            <el-select v-model="form.directory">
                 <el-option label="1111" value="1111"/>
                 <el-option label="2222" value="2222"/>
             </el-select>
@@ -48,7 +48,8 @@
                     return {
                         registryId: '',
                         image: '',
-                        imgVersion: ''
+                        imgVersion: '',
+                        directory: ''
                     }
                 }
             }

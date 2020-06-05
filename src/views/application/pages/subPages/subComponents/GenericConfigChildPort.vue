@@ -1,7 +1,12 @@
 <template>
     <div>
-        <el-form size="small" label-width="70px" @keydown.native.enter.prevent>
-            <p class="heading">添加端口</p>
+        <p class="heading">添加端口</p>
+        <el-form size="small" inline label-width="70px" class="inline-form" @keydown.native.enter.prevent>
+            <el-form-item>
+                <el-select v-model="form.type">
+                    <el-option label="自定义" value=""/>
+                </el-select>
+            </el-form-item>
             <el-form-item>
                 <el-input v-model="form.port" placeholder="端口"/>
             </el-form-item>
@@ -28,7 +33,7 @@
                                  :label="column.label"
                                  :key="index">
                     <template slot-scope="scope">
-                        <CustomRenderComp :render="column.render" :row="scope.row"/>
+                        <CustomRenderComp :render="column.render" :row="{...scope.row, index: scope.$index}"/>
                     </template>
                 </el-table-column>
             </template>
@@ -44,6 +49,7 @@
         data() {
             return {
                 form: {
+                    type: '',
                     port: '',
                     protocol: 'TCP'
                 },
@@ -64,35 +70,38 @@
                         label: '操作',
                         render: (createElement, row) => {
                             return createElement('el-button', {
-                                props:{
-                                    type: 'text'
+                                props: {
+                                    type: 'text',
+                                    icon: "icon icon-close el-icon-close"
                                 },
-                                on:{
-                                    click:()=>{
-                                        let {name} = row
-                                        this.list = this.list.filter(item => item.name !== name)
+                                on: {
+                                    click: () => {
+                                        this.list.splice(row.index, 1)
                                     }
                                 }
-                            }, '删除')
+                            })
                         }
                     }
                 ],
                 list: []
             }
         },
-        methods:{
+        methods: {
             onAddPortHandle() {
                 let {port, protocol} = this.form
                 let name = protocol.toLowerCase() + port
-                if(this.list.some(item=>item.name === name)) {
+                if (this.list.some(item => item.name === name)) {
                     this.$popError('同端口同协议的已存在')
-                }else {
+                } else {
                     this.list.push({
                         name,
                         port,
                         protocol
                     })
                 }
+            },
+            getList() {
+                return this.list
             }
         },
         components: {
@@ -101,6 +110,8 @@
     }
 </script>
 
-<style scoped>
-
+<style scoped lang="less">
+    .inline-form {
+        display: flex;
+    }
 </style>

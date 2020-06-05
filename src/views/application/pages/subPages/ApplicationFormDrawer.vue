@@ -8,7 +8,8 @@
                 <el-input v-model="form.projectName"/>
             </el-form-item>
             <el-form-item label="部署类型">
-                <el-select v-model="form.projectType" size="small">
+                <el-select v-model="form.projectType"
+                           @change="onProjectTypeChange">
                     <el-option value="1" label="通用"/>
                     <el-option value="2" label="容器"/>
                 </el-select>
@@ -16,6 +17,7 @@
             <el-form-item label="应用类型">
                 <el-select v-model="form.frameType"
                            placeholder="请选择"
+                           :disabled="form.projectType === '1'"
                            filterable>
                     <el-option v-for="(item, index) in frameTypeList"
                                :key="index"
@@ -23,18 +25,18 @@
                                :label="item.label"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="注册中心"
-                          v-if="form.frameType !== 'common'"
-                          prop="registryCenterId">
-                <el-select v-model="query.registryCenterId"
-                           filterable>
-                    <el-option
-                            v-for="(item, index) in registryCenterIdList"
-                            :key="index"
-                            :label="item.label"
-                            :value="item.value"/>
-                </el-select>
-            </el-form-item>
+            <template v-if="form.frameType !== 'common'">
+                <el-form-item label="注册中心"
+                              prop="registryCenterId">
+                    <el-select v-model="form.registryCenterId"
+                               filterable>
+                        <el-option v-for="(item, index) in registryCenterIdList"
+                                   :key="index"
+                                   :label="item.label"
+                                   :value="item.value"/>
+                    </el-select>
+                </el-form-item>
+            </template>
             <el-form-item label="应用描述">
                 <el-input type="textarea" v-model="form.projectDescription"/>
             </el-form-item>
@@ -63,15 +65,9 @@
                                    :label="item"/>
                     </el-select>
                 </el-form-item>
-                <ApplicationFormDrawerChildResourceForm/>
-                <div class="text-center">
-                    <el-button type="primary"
-                               icon="el-icon-plus"
-                               class="is-circle"
-                               round/>
-                </div>
+                <ApplicationFormDrawerChildResourceForm :form="form"/>
             </template>
-            <el-form-item label-width="24px">
+            <el-form-item>
                 <el-button type="primary" :loading="loading" @click="onConfirm">确 定</el-button>&nbsp;&nbsp;
                 <el-button @click="onCancel">取 消</el-button>
             </el-form-item>
@@ -83,9 +79,34 @@
     import {mapState} from 'vuex'
     import ApplicationFormDrawerChildWarning from './subComponents/ApplicationFormDrawerChildWarning'
     import ApplicationFormDrawerChildResourceForm from './subComponents/ApplicationFormDrawerChildResourceForm'
+
     export default {
         name: "ApplicationFormDrawer",
-        props: ['drawer'],
+        props: {
+            form: {
+                type: Object,
+                default() {
+                    return {
+                        projectName: '',
+                        frameType: 'common',
+                        projectType: '1',
+                        registryCenterId: '',
+                        description: '',
+                        resourceQuota: true,
+                        defaultCpu: '200m',
+                        defaultMem: '256M',
+                        // 以下是子组件的form参数
+                        clusterId: '',
+                        partitionId: '',
+                        networkName: '',
+                        cpu: 1,
+                        memory: 1,
+                        pods: 1,
+                        requestStorage: 0
+                    }
+                }
+            }
+        },
         data() {
             return {
                 frameTypeList: [   // 应用类型数组
@@ -97,19 +118,7 @@
                 CPUList: ['200m', '400m', '600m', '800m', '1', '2', '4'],
                 memList: ['256M', '512M', '1G', '2G', '4G', '8G', '16G'],
                 isShow: false,
-                form: {
-                    projectName: '',
-                    frameType: 'common',
-                    projectType: '1',
-                    registryCenterId: '',
-                    projectDescription: '',
-                    resourceQuota: false,
-                    defaultCpu: '200m',
-                    defaultMem: '256M'
-                },
-                rules: {
-
-                },
+                rules: {},
                 loading: false
             }
         },
@@ -117,14 +126,25 @@
             ...mapState(['currentTenant', 'clusters'])
         },
         methods: {
+            /**
+             * 监听部署类型变化
+             */
+            onProjectTypeChange(val) {
+                if (val === '1') {
+                    this.form.frameType = 'common'
+                }
+            },
             onConfirm() {
 
             },
             onCancel() {
 
             },
+            /**
+             * 父组件调用
+             */
             onToggle() {
-                this.isShow = !this.show
+                this.isShow = true
             },
             /**
              *  获取注册中心数组
@@ -153,10 +173,12 @@
         .el-drawer__header {
             margin-bottom: 12px;
         }
-        .el-drawer{
+
+        .el-drawer {
             width: 700px !important;
             overflow-y: auto;
         }
+
         .el-drawer__body {
             padding-right: 20px;
 
@@ -172,7 +194,8 @@
                 margin-bottom: 12px;
             }
         }
-        .text-center{
+
+        .text-center {
             text-align: center;
         }
     }

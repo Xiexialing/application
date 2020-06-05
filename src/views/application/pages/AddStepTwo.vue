@@ -1,9 +1,9 @@
 <template>
     <div id="addStepTwo">
         <TopologyEditor @nodeDoubleClickEvent="onNodeDoubleClick"/>
-        <ApplicationFormDrawer ref="applicationFormDrawerRef"/>
-        <ComponentFormDrawer ref="componentFormDrawerRef"/>
-        <ServiceFormDrawer ref="serviceFormDrawerRef"/>
+        <ApplicationFormDrawer ref="applicationFormDrawerRef" :form="form"/>
+        <ServiceFormDrawer ref="serviceFormDrawerRef" :form="form"/>
+        <ComponentFormDrawer ref="componentFormDrawerRef" :form="form"/>
     </div>
 </template>
 
@@ -16,7 +16,42 @@
     export default {
         name: "addStepOne",
         data() {
-            return {}
+            return {
+                form:{
+                    // 应用字段
+                    projectName: '',
+                    frameType: 'common',
+                    projectType: '1',
+                    registryCenterId: '',
+                    description: '',
+                    resourceQuota: true,
+                    defaultCpu: '200m',
+                    defaultMem: '256M',
+                    //以下是应用组件子组件的form参数
+                    clusterId: 5,
+                    partitionId: '',
+                    networkName: '',
+                    cpu: 1,
+                    memory: 1,
+                    pods: 1,
+                    requestStorage: 0,
+                    // 服务字段
+                    applicationName: '',
+                    kind: 'Deployment',
+                    versionName: '',
+                    instance: '',
+                    strategy: 'create-delete',
+                    // 仓库镜像
+                    registryId: '',
+                    image: '',
+                    imgVersion: '',
+                    directory: '',
+                    // 网络信息
+                    hostNetwork: 0,
+                    net: 'default',
+                    networkIps: '',
+                }
+            }
         },
         methods: {
             onNodeDoubleClick(target) {

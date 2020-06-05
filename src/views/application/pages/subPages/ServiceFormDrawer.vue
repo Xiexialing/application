@@ -15,15 +15,15 @@
             <div class="section">
                 <div class="section-item">
                     <h1 class="subtitle">基本信息</h1>
-                    <BaseInfoForm/>
+                    <BaseInfoForm :form="form"/>
                 </div>
                 <div class="section-item">
                     <h1 class="subtitle">仓库镜像</h1>
-                    <ServiceFormDrawerChildMirrorForm/>
+                    <ServiceFormDrawerChildMirrorForm :form="form"/>
                 </div>
                 <div class="section-item">
                     <h1 class="subtitle">网络信息（非必填项）</h1>
-                    <NetInfoForm/>
+                    <NetInfoForm :form="form"/>
                 </div>
                 <div class="section-item">
                     <h1 class="subtitle">通用配置（非必填项）</h1>
@@ -33,7 +33,7 @@
                 </div>
                 <div class="section-item">
                     <h1 class="subtitle">个性化配置（非必填项）</h1>
-                    <ServiceFormDrawerChildPersonalConfig/>
+                    <ServiceFormDrawerChildPersonalConfig :form="form"/>
                 </div>
             </div>
         </div>
@@ -50,7 +50,33 @@
 
     export default {
         name: "ApplicationFormDrawer",
-        props: ['drawer'],
+        props: {
+            form: {
+                type: Object,
+                default() {
+                    return {
+                        // 基本信息
+                        applicationName: '',
+                        kind: 'Deployment',
+                        versionName: '',
+                        instance: '',
+                        strategy: '',
+                        // 仓库镜像
+                        registryId: '',
+                        image: '',
+                        imgVersion: '',
+                        directory: '',
+                        // 网络信息
+                        clusterId: 5,
+                        hostNetwork: 0,
+                        net: 'default',
+                        networkIps: '',
+                        // 通用配置
+
+                    }
+                }
+            }
+        },
         data() {
             return {
                 isShow: false,
@@ -114,6 +140,9 @@
             onCancel() {
 
             },
+            /**
+             * 显示与隐藏事件
+             */
             onToggle() {
                 let {isShow} = this
                 this.isShow = !isShow
@@ -196,7 +225,7 @@
             .el-form {
                 padding-right: 20px;
 
-                .el-select {
+                .el-select, .el-cascader {
                     width: 100%;
                 }
 
@@ -217,6 +246,20 @@
                 color: #3a8ee6;
                 font-weight: bold;
                 border-left: 2px solid #3a8ee6;
+            }
+
+            .icon-close {
+                color: #f56c6c;
+            }
+
+            .section-item {
+                .el-table {
+                    th {
+                        background: #f7f7f7;
+                        color: #000;
+                        font-size: 14px;
+                    }
+                }
             }
         }
     }
